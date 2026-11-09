@@ -1,0 +1,66 @@
+import type { Category } from "@/types/category";
+
+const createdAt = "2026-01-12T08:00:00.000Z";
+
+export const seedCategories: Category[] = [
+  {
+    id: "cat-clothing",
+    name: "Clothing",
+    slug: "clothing",
+    description: "Everyday apparel, knitwear, and outerwear.",
+    status: "active",
+    productCount: 4,
+    createdAt,
+    updatedAt: createdAt,
+  },
+  {
+    id: "cat-footwear",
+    name: "Footwear",
+    slug: "footwear",
+    description: "Sneakers, loafers, and running shoes.",
+    status: "active",
+    productCount: 4,
+    createdAt,
+    updatedAt: createdAt,
+  },
+  {
+    id: "cat-accessories",
+    name: "Accessories",
+    slug: "accessories",
+    description: "Bags, wallets, sunglasses, and small leather goods.",
+    status: "active",
+    productCount: 4,
+    createdAt,
+    updatedAt: createdAt,
+  },
+  {
+    id: "cat-home",
+    name: "Home & Living",
+    slug: "home-living",
+    description: "Homeware, bedding, lighting, and candles.",
+    status: "active",
+    productCount: 4,
+    createdAt,
+    updatedAt: createdAt,
+  },
+  {
+    id: "cat-beauty",
+    name: "Beauty",
+    slug: "beauty",
+    description: "Skincare and body care essentials.",
+    status: "active",
+    productCount: 4,
+    createdAt,
+    updatedAt: createdAt,
+  },
+  {
+    id: "cat-electronics",
+    name: "Electronics",
+    slug: "electronics",
+    description: "Audio, charging, and portable accessories.",
+    status: "active",
+    productCount: 4,
+    createdAt,
+    updatedAt: createdAt,
+  },
+];

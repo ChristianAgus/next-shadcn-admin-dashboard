@@ -1,34 +1,62 @@
 import Link from "next/link";
 
-import { Lock } from "lucide-react";
-import type { Metadata } from "next";
+import { ArrowLeft, LockKeyhole } from "lucide-react";
 
-export const metadata: Metadata = {
-  robots: {
-    index: false,
-    follow: false,
-  },
-};
+import { AppLogo } from "@/components/app-logo";
+import { Button } from "@/components/ui/button";
+import { APP_CONFIG } from "@/config/app.config";
+import { getSession } from "@/lib/auth/session";
+import { createMetadata } from "@/lib/metadata";
 
-export default function page() {
+export const metadata = createMetadata({
+  title: "403 — Access denied",
+  description: "You do not have permission to view this page.",
+  path: "/unauthorized",
+  noIndex: true,
+});
+
+export default async function UnauthorizedPage({ searchParams }: { searchParams: Promise<{ permission?: string }> }) {
+  const session = await getSession();
+  const { permission } = await searchParams;
+
   return (
-    <div className="bg-background flex min-h-dvh flex-col items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-md text-center">
-        <Lock className="text-primary mx-auto size-12" />
-        <h1 className="mt-4 text-3xl font-bold tracking-tight sm:text-4xl">Unauthorized Access</h1>
-        <p className="text-muted-foreground mt-4">
-          You do not have permission to view the requested content. Please contact the site administrator if you believe
-          this is an error.
+    <div className="bg-background flex min-h-dvh flex-col items-center justify-center px-4 py-12 sm:px-6">
+      <div className="mx-auto flex max-w-lg flex-col items-center text-center">
+        <span className="bg-primary text-primary-foreground grid size-14 place-items-center rounded-2xl">
+          <AppLogo className="size-8" />
+        </span>
+        <p className="text-muted-foreground mt-8 text-sm font-medium tracking-widest uppercase">Error 403</p>
+        <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">Access denied</h1>
+        <p className="text-muted-foreground mt-4 text-sm leading-relaxed">
+          Your current role does not include the permission required to open this page.
+          {permission ? (
+            <>
+              {" "}
+              Required permission: <code className="bg-muted text-foreground rounded px-1.5 py-0.5">{permission}</code>
+            </>
+          ) : null}
         </p>
-        <div className="mt-6">
-          <Link
-            href="dashboard"
-            className="bg-primary text-primary-foreground hover:bg-primary/90 focus:ring-primary inline-flex items-center rounded-md px-4 py-2 text-sm font-medium shadow-xs transition-colors focus:ring-2 focus:ring-offset-2 focus:outline-hidden"
-            prefetch={false}
-          >
-            Go to Homepage
-          </Link>
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+          {session ? (
+            <Button asChild>
+              <Link href="/dashboard">
+                <ArrowLeft data-icon="inline-start" />
+                Back to dashboard
+              </Link>
+            </Button>
+          ) : (
+            <Button asChild>
+              <Link href="/login">Go to sign in</Link>
+            </Button>
+          )}
+          <Button asChild variant="outline">
+            <Link href={session ? "/dashboard/settings" : "/login"}>
+              <LockKeyhole data-icon="inline-start" />
+              {session ? "Manage permissions" : "Use a demo account"}
+            </Link>
+          </Button>
         </div>
+        <p className="text-muted-foreground mt-10 text-xs">{APP_CONFIG.copyright}</p>
       </div>
     </div>
   );

@@ -4,9 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { cn } from "cn";
-import { ChevronRight, MailIcon, PlusCircleIcon } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
   DropdownMenu,
@@ -28,17 +27,12 @@ import {
   SidebarMenuSubItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import type {
-  NavBadge,
-  NavGroup,
-  NavMainItem,
-  NavMainLinkItem,
-  NavMainParentItem,
-} from "@/navigation/sidebar/sidebar-items";
+import type { NavBadge, NavGroup, NavMainItem, NavMainLinkItem, NavMainParentItem } from "@/config/navigation.config";
 
 interface NavMainProps {
   readonly items: readonly NavGroup[];
 }
+
 interface NavItemProps {
   readonly item: NavMainItem;
   readonly isItemActive: (item: NavMainItem) => boolean;
@@ -50,11 +44,6 @@ interface NavLinkItemProps {
   readonly item: NavMainLinkItem;
   readonly isActive: boolean;
   readonly showIconFallback: boolean;
-}
-
-interface NavLinkIconProps {
-  readonly item: NavMainLinkItem;
-  readonly showFallback: boolean;
 }
 
 interface NavDropdownItemProps {
@@ -90,12 +79,10 @@ export function NavMain({ items }: NavMainProps) {
       return item.subItems.some((sub) => path.startsWith(sub.url));
     }
 
-    return path === item.url;
+    return path === item.url || (item.url !== "/dashboard" && path.startsWith(`${item.url}/`));
   };
 
-  const isSubItemActive = (url: string) => {
-    return path === url;
-  };
+  const isSubItemActive = (url: string) => path === url;
 
   const isSubmenuOpen = (item: NavMainParentItem) => {
     return item.subItems.some((sub) => path.startsWith(sub.url));
@@ -103,29 +90,6 @@ export function NavMain({ items }: NavMainProps) {
 
   return (
     <>
-      <SidebarGroup>
-        <SidebarGroupContent className="flex flex-col gap-2">
-          <SidebarMenu>
-            <SidebarMenuItem className="flex items-center gap-2">
-              <SidebarMenuButton
-                tooltip="Quick Create"
-                className="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground min-w-8 duration-200 ease-linear"
-              >
-                <PlusCircleIcon />
-                <span>Quick Create</span>
-              </SidebarMenuButton>
-              <Button
-                size="icon"
-                className="h-9 w-9 shrink-0 group-data-[collapsible=icon]:opacity-0"
-                variant="outline"
-              >
-                <MailIcon />
-                <span className="sr-only">Inbox</span>
-              </Button>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarGroupContent>
-      </SidebarGroup>
       {items.map((group) => (
         <SidebarGroup key={group.id}>
           {group.label && (
@@ -175,6 +139,8 @@ function NavItem({ item, isItemActive, isSubItemActive, isSubmenuOpen }: NavItem
 }
 
 function NavLinkItem({ item, isActive, showIconFallback }: NavLinkItemProps) {
+  const Icon = item.icon;
+
   return (
     <SidebarMenuItem>
       <SidebarMenuButton asChild aria-disabled={item.disabled} tooltip={item.title} isActive={isActive}>
@@ -184,27 +150,14 @@ function NavLinkItem({ item, isActive, showIconFallback }: NavLinkItemProps) {
           target={item.newTab ? "_blank" : undefined}
           rel={item.newTab ? "noreferrer" : undefined}
         >
-          <NavLinkIcon item={item} showFallback={showIconFallback} />
+          {Icon ? <Icon /> : null}
+          {!Icon && showIconFallback ? <CollapsedIconFallback title={item.title} /> : null}
           <span>{item.title}</span>
         </Link>
       </SidebarMenuButton>
       <NavItemBadge badge={item.badge} />
     </SidebarMenuItem>
   );
-}
-
-function NavLinkIcon({ item, showFallback }: NavLinkIconProps) {
-  const Icon = item.icon;
-
-  if (Icon) {
-    return <Icon />;
-  }
-
-  if (showFallback) {
-    return <CollapsedIconFallback title={item.title} />;
-  }
-
-  return null;
 }
 
 function NavDropdownItem({ item, isActive, isSubItemActive }: NavDropdownItemProps) {

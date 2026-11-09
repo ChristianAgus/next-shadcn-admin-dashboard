@@ -1,16 +1,16 @@
-import type { Metadata } from "next";
+import { requirePermission } from "@/lib/auth/session";
+import { createMetadata } from "@/lib/metadata";
 
-import { Roles } from "./_components/roles";
-import { roles } from "./_components/roles-table/data";
+import { RolesView } from "./_components/roles-view";
 
-export const metadata: Metadata = {
-  title: "Open Source Roles and Permissions UI with shadcn/ui",
-  description: "Explore an open source roles and permissions interface for reviewing access levels and managing roles.",
-  alternates: {
-    canonical: "/dashboard/roles",
-  },
-};
+export const metadata = createMetadata({
+  title: "Roles & permissions",
+  description: "Review roles and tune the permission matrix.",
+  path: "/dashboard/roles",
+});
 
-export default function Page() {
-  return <Roles roles={roles} />;
+export default async function RolesPage() {
+  await requirePermission("role:read");
+
+  return <RolesView />;
 }

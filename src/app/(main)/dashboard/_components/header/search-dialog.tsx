@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 
 import { Search } from "lucide-react";
 
+import { usePermission } from "@/components/auth/auth-provider";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -17,60 +18,17 @@ import {
   CommandList,
   CommandSeparator,
 } from "@/components/ui/command";
-import type { NavMainItem } from "@/navigation/sidebar/sidebar-items";
-import { sidebarItems } from "@/navigation/sidebar/sidebar-items";
+import { flattenNavigation, getNavigationForUser } from "@/config/navigation.config";
 
-type SearchItem = {
-  id: string;
-  group: string;
-  label: string;
-  url: string;
-  icon?: NavMainItem["icon"];
-  disabled?: boolean;
-  newTab?: boolean;
-};
-
-const sidebarGroupLabels = new Set(sidebarItems.flatMap((group) => (group.label ? [group.label] : [])));
-
-function getSubItemGroup(groupLabel: string | undefined, itemTitle: string) {
-  return sidebarGroupLabels.has(itemTitle) ? (groupLabel ?? "Other") : itemTitle;
-}
-
-const searchItems: SearchItem[] = sidebarItems.flatMap((group) =>
-  group.items.flatMap((item) => {
-    if (item.subItems) {
-      return item.subItems.map((sub) => ({
-        id: sub.id,
-        group: getSubItemGroup(group.label, item.title),
-        label: sub.title,
-        url: sub.url,
-        icon: item.icon,
-        disabled: sub.disabled,
-        newTab: sub.newTab,
-      }));
-    }
-    return [
-      {
-        id: item.id,
-        group: group.label ?? "Other",
-        label: item.title,
-        url: item.url,
-        icon: item.icon,
-        disabled: item.disabled,
-        newTab: item.newTab,
-      },
-    ];
-  }),
-);
+type SearchItem = ReturnType<typeof flattenNavigation>[number];
 
 function getAvailableItems(items: SearchItem[]) {
-  return items.filter((item) => !item.disabled && !item.url.includes("coming-soon"));
+  return items.filter((item) => !item.disabled);
 }
-
-const recommendations = getAvailableItems(searchItems);
 
 function groupBy(items: SearchItem[]) {
   const groups = [...new Set(items.map((item) => item.group))];
+
   return groups.map((group) => ({
     group,
     items: items.filter((item) => item.group === group),
@@ -78,17 +36,23 @@ function groupBy(items: SearchItem[]) {
 }
 
 export function SearchDialog() {
+  const { user } = usePermission();
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
   const router = useRouter();
 
+  const navigation = React.useMemo(() => getNavigationForUser(user), [user]);
+  const searchItems = React.useMemo(() => flattenNavigation(navigation), [navigation]);
+  const recommendations = React.useMemo(() => getAvailableItems(searchItems), [searchItems]);
+
   React.useEffect(() => {
-    const down = (e: KeyboardEvent) => {
-      if (e.key === "j" && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault();
-        setOpen((prev) => !prev);
+    const down = (event: KeyboardEvent) => {
+      if (event.key === "j" && (event.metaKey || event.ctrlKey)) {
+        event.preventDefault();
+        setOpen((previous) => !previous);
       }
     };
+
     document.addEventListener("keydown", down);
     return () => document.removeEventListener("keydown", down);
   }, []);
@@ -117,12 +81,12 @@ export function SearchDialog() {
             <CommandItem
               disabled={item.disabled}
               key={`${group}-${item.id}`}
-              value={`${item.group} ${item.label}`}
+              value={`${group} ${item.title}`}
               onSelect={() => handleSelect(item)}
             >
               <span className="flex min-w-0 items-center gap-2">
-                {item.icon && <item.icon />}
-                <span className="truncate">{item.label}</span>
+                {item.icon ? <item.icon /> : null}
+                <span className="truncate">{item.title}</span>
               </span>
             </CommandItem>
           ))}
@@ -135,7 +99,7 @@ export function SearchDialog() {
       <Button
         onClick={() => handleOpenChange(true)}
         variant="link"
-        className="text-muted-foreground px-0! font-normal hover:no-underline"
+        className="text-muted-foreground hidden px-0! font-normal hover:no-underline sm:inline-flex"
       >
         <Search data-icon="inline-start" />
         Search
@@ -145,7 +109,11 @@ export function SearchDialog() {
       </Button>
       <CommandDialog open={open} onOpenChange={handleOpenChange}>
         <Command>
-          <CommandInput placeholder="Search dashboards, users, and more…" value={query} onValueChange={setQuery} />
+          <CommandInput
+            placeholder="Search pages, products, orders, and more…"
+            value={query}
+            onValueChange={setQuery}
+          />
           <CommandList>
             <CommandEmpty>No results found.</CommandEmpty>
             {query ? renderGroups(searchItems) : renderGroups(recommendations)}

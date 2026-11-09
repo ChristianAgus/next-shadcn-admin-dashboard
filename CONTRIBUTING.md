@@ -1,40 +1,48 @@
-# Contributing to Studio Admin
+# Contributing to Store Admin
 
-Thanks for showing interest in improving **Studio Admin** (repo: `next-shadcn-admin-dashboard`).  
-This guide will help you set up your environment and understand how to contribute.
+Thanks for your interest in improving **Store Admin**, a reusable e-commerce
+admin boilerplate. This guide explains how to set up the project and how to
+contribute changes that fit the existing architecture.
 
 ---
 
 ## Overview
 
-This project is built with **Next.js 16**, **TypeScript**, **Tailwind CSS v4**, and **Shadcn UI**.  
-The goal is to keep the codebase modular, scalable, and easy to extend.
+This project is built with **Next.js 16**, **React 19**, **TypeScript**,
+**Tailwind CSS v4**, and **shadcn/ui** (Radix UI primitives, `radix-nova` style).
+The goal is to keep the codebase modular, config-driven, and easy to extend into
+a real product.
 
 ---
 
 ## Project Layout
 
-We use a **colocation-based file system**. Each feature keeps its own pages, components, and logic.
+Feature code is colocated with the route that owns it.
 
 ```
 src
-├── app               # Next.js routes (App Router)
-│   ├── (auth)        # Auth layouts & screens
-│   ├── (main)        # Main dashboard routes
-│   │   └── (dashboard)
-│   │       ├── crm
-│   │       ├── finance
-│   │       ├── default
-│   │       └── ...
+├── app
+│   ├── (main)
+│   │   ├── dashboard
+│   │   │   ├── <module>          # products, categories, orders, etc.
+│   │   │   │   ├── _components
+│   │   │   │   └── page.tsx
+│   │   │   └── _components       # shared dashboard shell widgets
+│   │   ├── login
+│   │   └── unauthorized
 │   └── layout.tsx
-├── components        # Shared UI components
-├── hooks             # Reusable hooks
-├── lib               # Config & utilities
-├── styles            # Tailwind / theme setup
-└── types             # TypeScript definitions
+├── components                    # shared UI and data-table primitives
+├── config                        # app, navigation, roles, and env config
+├── hooks                         # reusable hooks
+├── lib                           # auth, formatting, metadata, utilities
+├── mocks                         # in-memory mock database
+├── services                      # API-ready data layer
+├── styles                        # Tailwind and theme presets
+└── types                         # TypeScript definitions
 ```
 
-If you’d like a more detailed example of this setup, check out the [Next Colocation Template](https://github.com/arhamkhnz/next-colocation-template), where the full structure is explained with examples.
+Keep a component inside its route until another feature needs it. Do not move
+screen-specific code into a shared directory preemptively.
 
 ---
 
@@ -42,86 +50,111 @@ If you’d like a more detailed example of this setup, check out the [Next Coloc
 
 ### Fork and Clone the Repository
 
-1. Fork the Repository
-   
-   Click [here](https://github.com/arhamkhnz/next-shadcn-admin-dashboard/fork) to fork the repository.
+1. Fork the repository on your Git host.
+2. Clone your fork:
 
-2. Clone the Repository  
    ```bash
-   git clone https://github.com/YOUR_USERNAME/next-shadcn-admin-dashboard.git
-   ```
-   
-3. Navigate into the Project  
-   ```bash
-   cd next-shadcn-admin-dashboard
+   git clone https://github.com/YOUR_USERNAME/YOUR_REPO.git
    ```
 
-4. **Install dependencies**
+3. Navigate into the project:
+
+   ```bash
+   cd YOUR_REPO
+   ```
+
+4. Install dependencies:
+
    ```bash
    npm install
    ```
 
-5. **Run the dev server**
+5. Copy the environment template and adjust the values:
+
+   ```powershell
+   Copy-Item .env.example .env.local
+   ```
+
+6. Run the dev server:
+
    ```bash
    npm run dev
    ```
-   App will be available at [http://localhost:3000](http://localhost:3000).
+
+   The app is available at [http://localhost:3000](http://localhost:3000). If
+   the port is busy, run `npm run dev -- -p 3001`.
+
+See [`docs/CONFIGURATION.md`](docs/CONFIGURATION.md) for every environment
+variable and configuration file.
 
 ---
 
 ## Contribution Flow
 
-- Always create a new branch before working on changes:
+- Create a new branch before working on changes:
+
   ```bash
   git checkout -b feature/my-update
   ```
 
-- Use clear commit messages:
+- Use clear conventional commit messages:
+
   ```bash
-  git commit -m "feat: add finance dashboard screen"
+  git commit -m "feat: add suppliers module"
   ```
 
-- Open a Pull Request once ready.
-- If your change adds a new UI screen or component, include a screenshot in your PR description.
+- Run the local checks before opening a pull request:
+
+  ```bash
+  npm run check
+  npm run typecheck
+  ```
+
+- Open a pull request once ready. Include screenshots for new screens or
+  material visual changes, and mention mobile and dark-theme states when
+  relevant.
 
 ---
 
 ## Where to Contribute
 
-- **External Pages**: Landing pages or other non-dashboard routes → `src/app/(external)/`  
-- **Auth Screens**: Login, register, and authentication layouts → `src/app/(main)/auth/`  
-- **Dashboard Screens**: Feature dashboards like CRM, Finance, Analytics → `src/app/(main)/dashboard/`
-- **Components**: Reusable UI goes in `src/components/`  
-- **Hooks**: Custom logic goes in `src/hooks/`  
-- **Themes**: New presets under `src/styles/presets/`  
+- **Dashboard modules**: `src/app/(main)/dashboard/<module>/`
+- **Dashboard shell and shared widgets**: `src/app/(main)/dashboard/_components/`
+- **Shared components**: `src/components/`
+- **Auth and session logic**: `src/lib/auth/` and `src/server/`
+- **Data layer**: `src/services/` and `src/mocks/`
+- **Configuration**: `src/config/`
+- **Documentation**: `docs/`
+- **Themes**: presets under `src/styles/presets/`
+
+When adding a module, follow [`docs/ADDING-A-MODULE.md`](docs/ADDING-A-MODULE.md).
 
 ---
 
 ## Guidelines
 
-- Prefer **TypeScript types** over `any`
-- Husky pre-commit hooks are enabled - linting and formatting run automatically when you commit, and if there are errors the commit will be blocked until they are fixed. 
-- Follow **Shadcn UI** style & Tailwind v4 conventions
-- Keep accessibility in mind (ARIA, keyboard nav)
-- Use clear commit messages with conventional prefixes (`feat:`, `fix:`, `chore:`, etc.)
-- Avoid unnecessary dependencies — prefer existing utilities where possible
+- Prefer **TypeScript types** over `any`.
+- Husky pre-commit hooks run Biome. Fix lint and format errors before committing.
+- Follow the existing shadcn/ui and Tailwind v4 conventions.
+- Do not modify files inside `src/components/ui/` or `src/components/calendar/`.
+  Apply customization where the components are used.
+- Use semantic theme tokens instead of raw color values so light mode, dark mode,
+  and presets keep working.
+- Keep accessibility in mind (semantic HTML, labels, ARIA, keyboard navigation).
+- Avoid unnecessary dependencies. Prefer existing utilities.
+- Keep changes focused and avoid refactoring unrelated files.
 
 ---
 
 ## Submitting PRs
 
-- Open a Pull Request once your changes are ready.  
-- Ensure your branch is up to date with `main` before submitting.  
+- Open a pull request once your changes are ready.
+- Ensure your branch is up to date with `main` before submitting.
 - Reference any related issue in your PR for context.
+- Explain any new reusable pattern or dependency in the PR description.
 
 ---
 
-## Questions & Support
+## Questions and Support
 
-- Report bugs, suggestions, or issues via [GitHub Issues](https://github.com/arhamkhnz/next-shadcn-admin-dashboard/issues)
-
----
-
-Your contributions keep this project growing. 🚀
-
-**Happy Vibe Coding!**
+Open an issue in the repository for bugs, suggestions, or questions.

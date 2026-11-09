@@ -14,26 +14,30 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { APP_CONFIG } from "@/config/app-config";
-import { rootUser } from "@/data/users";
-import { sidebarItems } from "@/navigation/sidebar/sidebar-items";
+import { APP_CONFIG } from "@/config/app.config";
+import { getNavigationForUser } from "@/config/navigation.config";
 import { usePreferencesStore } from "@/stores/preferences/preferences-provider";
+import type { AuthUser } from "@/types/auth";
 
 import { NavMain } from "./nav-main";
 import { NavUser } from "./nav-user";
-import { SupportCard } from "./support-card";
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
+  readonly user: AuthUser;
+}
+
+export function AppSidebar({ user, ...props }: AppSidebarProps) {
   const { sidebarVariant, sidebarCollapsible, isSynced } = usePreferencesStore(
-    useShallow((s) => ({
-      sidebarVariant: s.values.sidebar_variant,
-      sidebarCollapsible: s.values.sidebar_collapsible,
-      isSynced: s.isSynced,
+    useShallow((state) => ({
+      sidebarVariant: state.values.sidebar_variant,
+      sidebarCollapsible: state.values.sidebar_collapsible,
+      isSynced: state.isSynced,
     })),
   );
 
   const variant = isSynced ? sidebarVariant : props.variant;
   const collapsible = isSynced ? sidebarCollapsible : props.collapsible;
+  const navigation = getNavigationForUser(user);
 
   return (
     <Sidebar {...props} variant={variant} collapsible={collapsible}>
@@ -41,8 +45,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
-              <Link prefetch={false} href="/dashboard/default">
-                <AppLogo viewBox="72 96 356 308" />
+              <Link prefetch={false} href="/dashboard">
+                <AppLogo className="size-6" />
                 <span className="text-base font-semibold">{APP_CONFIG.name}</span>
               </Link>
             </SidebarMenuButton>
@@ -50,11 +54,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={sidebarItems} />
+        <NavMain items={navigation} />
       </SidebarContent>
       <SidebarFooter>
-        <SupportCard />
-        <NavUser user={rootUser} />
+        <NavUser user={user} />
       </SidebarFooter>
     </Sidebar>
   );

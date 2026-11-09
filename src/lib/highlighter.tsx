@@ -91,9 +91,10 @@ export async function loadHighlighter(language: string) {
 
       return {
         lines: tokens.map((line) =>
-          line.map((token, index) => (
+          line.map((token) => (
             <span
-              key={index}
+              // Token offsets are stable per line, so keys do not reorder on re-render.
+              key={`${token.offset}-${token.content}`}
               style={token.htmlStyle as React.CSSProperties}
               className="text-(--shiki-light) dark:text-(--shiki-dark)"
             >
